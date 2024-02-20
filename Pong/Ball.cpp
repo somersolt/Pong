@@ -1,13 +1,10 @@
-#include "pch.h"
+#include "Framework/pch.h"
 #include "Bat.h"
 #include "Ball.h"
+#include "Framework/Scene.h"
 
-Ball::Ball(Bat& b, const sf::FloatRect& bounds) : bat(b) , windowbounds(bounds)
+Ball::Ball(Bat& b, const sf::FloatRect& bounds, const std::string name) : bat(b) ,windowBounds(bounds), GameObject(name)
 {
-	shape.setRadius(10.f);
-	//shape.setPosition({ 1920.f / 2.f , 1080.f - 35.f });
-	shape.setFillColor(sf::Color::White);
-	Utils::SetOrigin(shape, Origins::BC);
 }
 
 void Ball::fire(sf::Vector2f d, float s)
@@ -17,54 +14,89 @@ void Ball::fire(sf::Vector2f d, float s)
 	isDead = false;
 }
 
+void Ball::Init()
+{
+	shape.setRadius(20.f);
+	shape.setFillColor(sf::Color::White);
+	Utils::SetOrigin(shape, Origins::BC);
+}
+
+void Ball::Release()
+{
+
+}
+
+void Ball::Reset()
+{
+
+}
+
 void Ball::Update(float dt)
 {
 
 	isBoundBat = false;
-	sf::Vector2f pos = shape.getPosition();
+	const sf::FloatRect& preBallBounds = shape.getGlobalBounds();
+	sf::Vector2f prePos = shape.getPosition();
+	sf::Vector2f pos = prePos;
 	pos += direction * speed * dt;
 	shape.setPosition(pos);
 
-
 	const sf::FloatRect& ballBounds = shape.getGlobalBounds();
+	float ballLeft = ballBounds.left;
+	float ballRight = ballBounds.left + ballBounds.width;
+	float ballTop = ballBounds.top;
+	float ballBottom = ballBounds.top + ballBounds.height;
+
+	float windowLeft = windowBounds.left;
+	float windowRight = windowBounds.left + windowBounds.width;
+	float windowTop = windowBounds.top;
+	float windowBottom = windowBounds.top + windowBounds.height;
+
+	//面倒贸府
+	
 	const sf::FloatRect& batBounds = bat.shape.getGlobalBounds();
+	float batLeft = batBounds.left;
+	float batRight = batBounds.left + batBounds.width;
+	float batTop = batBounds.top;
+	float batBottom = batBounds.top + batBounds.height;
+
+
 	if (ballBounds.intersects(batBounds) && !isBatCollision)
 	{
 		isBatCollision = true;
 		isBoundBat = true;
-		direction.y *= -1.f;
+
+		if (ballBottom > batTop || ballTop < batBottom)
+		{
+			direction.y *= -1.f;
+		}
+
+		if (ballLeft > batRight || ballRight < batLeft)
+		{
+			direction.x *= -1.f;
+		}
+
 	}
 	if (!ballBounds.intersects(batBounds))
 	{
 		isBatCollision = false;
 	}
 
-	//面倒贸府
-	if (windowbounds.top > shape.getGlobalBounds().getPosition().y)
+	if (ballTop > windowBottom)
 	{
-		Utils::SetOrigin(shape, Origins::TC);
-		shape.setPosition(shape.getPosition().x, windowbounds.top);
+		isDead = true;
+		shape.setPosition(prePos);
 		direction.y *= -1.f;
 	}
-
-	if (windowbounds.left > shape.getGlobalBounds().getPosition().x)
+	else if (ballTop < windowTop)
 	{
-		Utils::SetOrigin(shape, Origins::ML);
-		shape.setPosition(windowbounds.left, shape.getPosition().y);
-		direction.x *= -1.f;
+		shape.setPosition(prePos);
+		direction.y *= -1.f;
 	}
-
-	if (windowbounds.width < shape.getGlobalBounds().getPosition().x)
+	else if (ballLeft < windowLeft || ballRight > windowRight)
 	{
-		Utils::SetOrigin(shape, Origins::MR);
-		shape.setPosition(windowbounds.width, shape.getPosition().y);
+		shape.setPosition(prePos);
 		direction.x *= -1.f;
-	}
-
-	if (windowbounds.height < shape.getGlobalBounds().getPosition().y)
-	{
-		Utils::SetOrigin(shape, Origins::BC);
-		isDead = true;
 	}
 }
 

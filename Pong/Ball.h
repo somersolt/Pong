@@ -1,15 +1,14 @@
 #pragma once
 class Bat;
 
-class Ball
+class Ball : public GameObject
 {
 protected:
 	sf::Vector2f direction = { 0.f, 0.f };
-	Bat& bat;
-	sf::FloatRect windowbounds;
+	sf::FloatRect windowBounds;
 public:
-	Ball(Bat& b, const sf::FloatRect& bounds);
-	
+	Ball(Bat& b, const sf::FloatRect& bounds, const std::string name);
+	Bat& bat;
 	sf::CircleShape shape;
 	float speed = 0.f;
 	bool isDead = false;
@@ -17,9 +16,15 @@ public:
 	bool isBatCollision = false;
 
 
-	void fire(sf::Vector2f d, float s);
+	void Init();
+	void Release();
+
+	void Reset(); // 재사용할때 쓰는 함수
 
 	void Update(float dt);
 	void Draw(sf::RenderWindow& window);
+
+
+	void fire(sf::Vector2f d, float s);
 };
 
